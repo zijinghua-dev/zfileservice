@@ -43,7 +43,6 @@ class FileService
     {
         try {
             $uuid = $request->input('uuid');
-            $httpResponse = $this->fileRepository->getFileData($uuid);
             $uploadFile = $request->file('file');
             $fileExtension = $uploadFile->getClientOriginalExtension();
             $fileSize = $uploadFile->getClientSize();
@@ -66,7 +65,9 @@ class FileService
                 if (!$result){
                     throw new Exception("文件上传异常");
                 }
-            } elseif ($httpResponse['uuid']) {
+            }
+            $httpResponse = $this->fileRepository->getFileData($uuid);
+            if ($httpResponse['uuid']) {
                 $httpResponse['url'] = Storage::url($httpResponse['url']);
                 return $this->formateData($httpResponse);
             }
