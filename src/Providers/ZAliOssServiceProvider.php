@@ -15,7 +15,7 @@ class ZAliOssServiceProvider extends ServiceProvider
 {
     public function boot()
     {
-        Storage::extend('zoss', function($app, $config)
+        Storage::extend('oss', function($app, $config)
         {
             $accessId  = $config['access_id'];
             $accessKey = $config['access_key'];

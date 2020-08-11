@@ -27,6 +27,7 @@ class ZServiceProvider extends ServiceProvider
     private function registerProvider(){
         $this->app->register(RouteServiceProvider::class);
         $this->app->register(ZEventServiceProvider::class);
+        $this->app->register(ZAliOssServiceProvider::class);
     }
 
     public function registerConsoleCommands()
