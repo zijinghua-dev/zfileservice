@@ -22,6 +22,9 @@ class ZServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->mergeConfig();
+        if ($this->app->runningInConsole()) {
+            $this->loadMigrationsFrom(realpath(__DIR__ . '/../publishable/migrations'));
+        }        
     }
 
     private function registerProvider(){

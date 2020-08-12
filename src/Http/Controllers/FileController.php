@@ -1,8 +1,8 @@
 <?php
 
-namespace Zijinghua\Zfilesystem\http\Controllers;
+namespace Zijinghua\Zfilesystem\Http\Controllers;
 
-use Zijinghua\Zfilesystem\Http\Requests\UploadRequest;
+use Zijinghua\Zfilesystem\Http\Requests\File\UploadRequest;
 use Zijinghua\Zfilesystem\Http\Resources\FileResource;
 use Zijinghua\Zfilesystem\Http\Services\FileService;
 

@@ -7,19 +7,23 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\Format\BaseModel;
 use Zijinghua\Zfilesystem\Repositories\FileRepository;
 use Exception;
+use Zijinghua\Zfilesystem\Repositories\ConfigRepository;
+use DB;
 
 class FileService
 {
     /** @var 文件库 */
     protected $fileRepository;
-
+    
+    protected $configRepository;
     /**
      * FileService constructor.
      * @param FileRepository $fileRepository
      */
-    public function __construct(FileRepository $fileRepository)
+    public function __construct(FileRepository $fileRepository, ConfigRepository $configRepository)
     {
         $this->fileRepository = $fileRepository;
+        $this->configRepository = $configRepository;
     }
 
     /**
@@ -47,10 +51,12 @@ class FileService
             $uploadFile = $request->file('file');
             $fileExtension = $uploadFile->getClientOriginalExtension();
             $fileSize = $uploadFile->getClientSize();
-            // $filename = $uploadFile->getClientOriginalName();
             $fileNameList = explode('.', $uploadFile->getClientOriginalName());
             $fileType = $uploadFile->getClientMimeType();
-            $filePath = $this->generateFilePath();
+            $useType = $request->input('use_type');
+            $resourceKey = $request->input('resource_keyword');
+            $resourceRemark = $request->input('resource_remark');
+            $filePath = $this->generateFilePath($useType);
             $savePath = $filePath . $fileMd5 .'.'.$fileExtension;
             $project = config('zfilesystem.file.project');
             $fileData = [
@@ -75,6 +81,16 @@ class FileService
                     throw new Exception("文件上传异常");
                 }
             }
+            if ($useType) {
+                $configData = [
+                    'keyword' => $resourceKey,
+                    'value' => $savePath
+                ];
+                if ($resourceRemark) {
+                    $configData = array_merge($configData, ['remark' => $resourceRemark]);
+                }
+                $this->saveConfig(collect($configData));
+            }
             // 文件数据存在，返回文件数据
             $httpResponse = $this->fileRepository->getFileData($fileMd5);
             if ($httpResponse['file_md5']) {
@@ -91,6 +107,7 @@ class FileService
             $this->fileRepository->saveFileData($fileData);
             Cache::forget($md5Temp);
             return $this->formateData($fileData);
+
         } catch (\Exception $exception) {
             Cache::forget($md5Temp);
             \Log::warning($exception->getMessage());
@@ -147,8 +164,29 @@ class FileService
      *
      * @return void
      */
-    protected function generateFilePath()
+    protected function generateFilePath($useType)
     {
-        return "/" . date("Y/m/d/H/i", time()) . "/";
+        switch ($useType) {
+            case 'resource':
+                $filePath = "\/resources/images/";
+                break;
+            default :
+                $filePath = "/" . date("Y/m/d/H/i", time()) . "/";    
+        }
+        return $filePath;
+    }
+    /**
+     * 保存配置
+     *
+     * @param [type] $params
+     * @return Exception
+     */
+    protected function saveConfig($params)
+    {
+        try {
+            $this->configRepository->store($params);
+        } catch (\Exception $exception) {
+            throw new Exception($exception->getMessage());
+        }
     }
 }

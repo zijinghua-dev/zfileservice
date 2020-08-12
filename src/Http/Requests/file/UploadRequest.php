@@ -1,6 +1,6 @@
 <?php
 
-namespace Zijinghua\Zfilesystem\Http\Requests;
+namespace Zijinghua\Zfilesystem\Http\Requests\File;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -29,6 +29,16 @@ class UploadRequest extends FormRequest
                 'file',
                 'max:10240'
             ],
+            'file_md5' => [
+                'required',
+                'max:32'
+            ],
+            'use_type' => [
+                'string'
+            ],
+            'resource_keyword' => [
+                'required_with:use_type'
+            ]
         ];
     }
 }

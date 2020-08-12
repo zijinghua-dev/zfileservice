@@ -43,8 +43,6 @@ class ZAliOssAdapter extends AliOssAdapter
             throw new FileNotFoundException($path.' not found');
         }
         $path = $this->getPathPrefix() . ltrim($path, '\\/');
-        \Log::info('path');
-        \Log::info($path);
         return ( $this->ssl ? 'https://' : 'http://' ) . ( $this->isCname ?
                 ( $this->cdnDomain == '' ? $this->endPoint : $this->cdnDomain ) :
                 $this->bucket . '.' . $this->endPoint ) . '/' . ltrim($path, '/');

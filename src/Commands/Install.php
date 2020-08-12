@@ -39,7 +39,9 @@ class Install extends Command
      */
     public function handle(Filesystem $filesystem)
     {
-        $this->info('Publish zvoyager.php config to config/zvoyager.php');
+        $this->info('Publish config to config cache');
         $this->call('vendor:publish', ['--provider' => ZServiceProvider::class, '--tag' => ['config']]);
+        $this->info('Migrating the database tables into your application');
+        $this->call('migrate');
     }
 }
