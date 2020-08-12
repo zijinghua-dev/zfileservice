@@ -77,7 +77,7 @@ class FileService
                 }
             }
             // 文件数据存在，返回文件数据
-            $httpResponse = $this->fileRepository->getFileData($fileMd5);
+            $httpResponse = $this->fileRepository->getFileData(null, $fileMd5);
             if ($httpResponse['file_md5']) {
                 $httpResponse['real_path'] = Storage::url($httpResponse['url']);
                 return $this->formateData($httpResponse);
