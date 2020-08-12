@@ -16,10 +16,18 @@ class FileResource extends JsonResource
      */
     public function toArray($request)
     {
+        if ($this->filename) {
+            $filename = $this->filename;
+        } else {
+            $filename = $this->filename_prefix ?
+            $this->filename_prefix . '.' . $this->filename_extension :
+            '';
+        }
+        
         return [
-            'uuid' => $this->uuid,
+            'file_md5' => $this->file_md5,
             'url'  => $this->real_path,
-            'filename' => $this->filename,
+            'filename' => $filename,
             'type' => $this->type,
         ];
     }

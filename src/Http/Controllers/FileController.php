@@ -30,7 +30,6 @@ class FileController
     public function upload(UploadRequest $request, FileService $fileService)
     {
         $result = $fileService->upload($request);
-
         return new FileResource($result);
     }
 }

@@ -16,16 +16,17 @@ class FileRepository
 
     /**
      * 获取文件数据
-     * @param $uuid
+     * @param $fileMd5
      * @return mixed
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function getFileData($uuid)
+    public function getFileData($fileMd5)
     {
         $uri = config('zfilesystem.file.file_sevice.host') .
-            config('zfilesystem.file.file_sevice.api.show') .
+            config('zfilesystem.file.file_sevice.api') .
             '/' .
-            $uuid;
+            $fileMd5;
+
         return $this->httpRequest('get', $uri);
     }
     /**
@@ -36,7 +37,8 @@ class FileRepository
      */
     public function saveFileData($params)
     {
-        $uri = config('zfilesystem.file.file_sevice.host') . config('zfilesystem.file.file_sevice.api.upload');
+        $uri = config('zfilesystem.file.file_sevice.host') .
+            config('zfilesystem.file.file_sevice.api');
         return $this->httpRequest('post', $uri, $params);
     }
 

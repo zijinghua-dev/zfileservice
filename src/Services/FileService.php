@@ -24,12 +24,11 @@ class FileService
 
     /**
      * 获取指定文件
-     * @param $uuid
+     * @param $fileMd5
      */
-    public function getFile($uuid)
+    public function getFile($fileMd5)
     {
-        $response = $this->fileRepository->getFileData($uuid);
-        unset($response['view_url']);
+        $response = $this->fileRepository->getFileData($fileMd5);
         $response = array_merge($response, [
             'real_path' => Storage::exists($response['url']) ? Storage::url($response['url']) : ''
         ]);
@@ -44,29 +43,30 @@ class FileService
     public function upload($request)
     {
         try {
-            $uuid = $request->input('uuid');
+            $fileMd5 = $request->input('file_md5');
             $uploadFile = $request->file('file');
             $fileExtension = $uploadFile->getClientOriginalExtension();
             $fileSize = $uploadFile->getClientSize();
-            $filename = $uploadFile->getClientOriginalName();
+            // $filename = $uploadFile->getClientOriginalName();
+            $fileNameList = explode('.', $uploadFile->getClientOriginalName());
             $fileType = $uploadFile->getClientMimeType();
-            $savePath = '/'.date("Y/m/d/H/i", time())."/". $uuid .'.'.$fileExtension;
+            $filePath = $this->generateFilePath();
+            $savePath = $filePath . $fileMd5 .'.'.$fileExtension;
             $project = config('zfilesystem.file.project');
             $fileData = [
-                'uuid' => $uuid,
+                'file_md5' => $fileMd5,
                 'filename_extension' => $fileExtension,
                 'file_size' => $fileSize,
-                'filename' => $filename,
+                'filename_prefix' => $fileNameList[0],
                 'type' => $fileType,
-                'file_path' => $savePath,
+                'file_path' => $filePath,
                 'project' => $project,
-                'file_driver' => config('zfilesystem.file.driver'),
             ];
-            $uuidTemp = $project . config('file.file_lock') . $uuid;
+            $md5Temp = $project . config('file.file_lock') . $fileMd5;
             $cycleNum = config('file.file_cycle_num');
-            $lockNum = Cache::get($uuidTemp);
+            $lockNum = Cache::get($md5Temp);
             if ($lockNum) {
-                $this->fileUploadWait($cycleNum, $uuidTemp);
+                $this->fileUploadWait($cycleNum, $md5Temp);
             }
             /** @var 如果文件不存在，上传文件 */
             if (!Storage::exists($savePath)) {
@@ -76,23 +76,23 @@ class FileService
                 }
             }
             // 文件数据存在，返回文件数据
-            $httpResponse = $this->fileRepository->getFileData($uuid);
-            if ($httpResponse['uuid']) {
-                $httpResponse['url'] = Storage::url($httpResponse['url']);
+            $httpResponse = $this->fileRepository->getFileData($fileMd5);
+            if ($httpResponse['file_md5']) {
+                $httpResponse['real_path'] = Storage::url($httpResponse['url']);
                 return $this->formateData($httpResponse);
             }
             /** 锁缓存 */
-            $this->lock($uuidTemp);
+            $this->lock($md5Temp);
             $fileData = array_merge($fileData, [
                 'url' => $savePath,
                 'real_path' => Storage::url($savePath)
             ]);
             /** 保存文件数据 */
             $this->fileRepository->saveFileData($fileData);
-            Cache::forget($uuidTemp);
+            Cache::forget($md5Temp);
             return $this->formateData($fileData);
         } catch (\Exception $exception) {
-            Cache::forget($uuidTemp);
+            Cache::forget($md5Temp);
             \Log::warning($exception->getMessage());
             throw new \Exception($exception->getMessage());
         }
@@ -129,16 +129,26 @@ class FileService
     }
     /**
      * cache lock
-     * @param $uuidTemp
+     *
+     * @param [type] $md5Temp
      * @throws Exception
      */
-    protected function lock($uuidTemp)
+    protected function lock($md5Temp)
     {
         $lockInterval = config('file.lock_interval');
 
-        $redis_temp = Cache::lock($uuidTemp)->block($lockInterval);
+        $redis_temp = Cache::lock($md5Temp)->block($lockInterval);
         if (!$redis_temp) {
             throw new Exception("redis锁存在！");
         }
+    }
+    /**
+     * 创建默认文件路径
+     *
+     * @return void
+     */
+    protected function generateFilePath()
+    {
+        return "/" . date("Y/m/d/H/i", time()) . "/";
     }
 }
