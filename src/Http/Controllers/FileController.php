@@ -2,6 +2,7 @@
 
 namespace Zijinghua\Zfilesystem\Http\Controllers;
 
+use Zijinghua\Zfilesystem\Http\Requests\File\ShowRequest;
 use Zijinghua\Zfilesystem\Http\Requests\File\UploadRequest;
 use Zijinghua\Zfilesystem\Http\Resources\FileResource;
 use Zijinghua\Zfilesystem\Http\Services\FileService;
@@ -10,13 +11,14 @@ class FileController
 {
     /**
      * 获取图片
+     * @param ShowRequest $request
      * @param FileService $fileService
-     * @param $uuid
+     * @param null $uuid
      * @return FileResource
      */
-    public function show(FileService $fileService, $uuid)
+    public function show(ShowRequest $request, FileService $fileService, $uuid = null)
     {
-        $result = $fileService->getFile($uuid);
+        $result = $fileService->getFile($request, $uuid);
 
         return new FileResource($result);
     }
@@ -25,9 +27,15 @@ class FileController
      * @param UploadRequest $request
      * @param FileService $fileService
      * @return FileResource
-     * @throws \Exception
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function upload(UploadRequest $request, FileService $fileService)
+    {
+        $result = $fileService->upload($request);
+        return new FileResource($result);
+    }
+
+    public function resource(UploadRequest $request, FileService $fileService)
     {
         $result = $fileService->upload($request);
         return new FileResource($result);

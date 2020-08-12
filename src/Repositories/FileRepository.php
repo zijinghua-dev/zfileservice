@@ -20,13 +20,16 @@ class FileRepository
      * @return mixed
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function getFileData($fileMd5)
+    public function getFileData($request = null, $fileMd5 = null)
     {
         $uri = config('zfilesystem.file.file_sevice.host') .
-            config('zfilesystem.file.file_sevice.api') .
-            '/' .
-            $fileMd5;
-
+            config('zfilesystem.file.file_sevice.api');
+        if ($fileMd5) {
+            $uri .= '/' . $fileMd5;
+        }
+        if ($request) {
+            $uri .= '/?' . http_build_query($request->all());
+        }
         return $this->httpRequest('get', $uri);
     }
     /**

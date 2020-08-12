@@ -24,17 +24,4 @@ class ConfigRepository
             ->get();
         return $config;
     }
-
-    public function store($params)
-    {
-        $data = $params->only(['keyword', 'value', 'remark']);
-        $config = $this->config->updateOrCreate(
-            [
-                'keyword' => $data->get('keyword'),
-                'value' => $data->get('value')
-            ],
-            $data->all()
-        );
-        return $config;
-    }
 }

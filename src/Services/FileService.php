@@ -8,7 +8,6 @@ use App\Models\Format\BaseModel;
 use Zijinghua\Zfilesystem\Repositories\FileRepository;
 use Exception;
 use Zijinghua\Zfilesystem\Repositories\ConfigRepository;
-use DB;
 
 class FileService
 {
@@ -28,11 +27,14 @@ class FileService
 
     /**
      * 获取指定文件
-     * @param $fileMd5
+     * @param null $request
+     * @param null $fileMd5
+     * @return BaseModel
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function getFile($fileMd5)
+    public function getFile($request = null, $fileMd5 = null)
     {
-        $response = $this->fileRepository->getFileData($fileMd5);
+        $response = $this->fileRepository->getFileData($request, $fileMd5);
         $response = array_merge($response, [
             'real_path' => Storage::exists($response['url']) ? Storage::url($response['url']) : ''
         ]);
@@ -54,10 +56,8 @@ class FileService
             $fileNameList = explode('.', $uploadFile->getClientOriginalName());
             $fileType = $uploadFile->getClientMimeType();
             $useType = $request->input('use_type');
-            $resourceKey = $request->input('resource_keyword');
-            $resourceRemark = $request->input('resource_remark');
             $filePath = $this->generateFilePath($useType);
-            $savePath = $filePath . $fileMd5 .'.'.$fileExtension;
+            $savePath = $filePath . $fileMd5 . '.' . $fileExtension;
             $project = config('zfilesystem.file.project');
             $fileData = [
                 'file_md5' => $fileMd5,
@@ -68,12 +68,7 @@ class FileService
                 'file_path' => $filePath,
                 'project' => $project,
             ];
-            $md5Temp = $project . config('file.file_lock') . $fileMd5;
-            $cycleNum = config('file.file_cycle_num');
-            $lockNum = Cache::get($md5Temp);
-            if ($lockNum) {
-                $this->fileUploadWait($cycleNum, $md5Temp);
-            }
+
             /** @var 如果文件不存在，上传文件 */
             if (!Storage::exists($savePath)) {
                 $result = Storage::put($savePath, file_get_contents($uploadFile));
@@ -81,40 +76,25 @@ class FileService
                     throw new Exception("文件上传异常");
                 }
             }
-            if ($useType) {
-                $configData = [
-                    'keyword' => $resourceKey,
-                    'value' => $savePath
-                ];
-                if ($resourceRemark) {
-                    $configData = array_merge($configData, ['remark' => $resourceRemark]);
-                }
-                $this->saveConfig(collect($configData));
-            }
             // 文件数据存在，返回文件数据
             $httpResponse = $this->fileRepository->getFileData($fileMd5);
             if ($httpResponse['file_md5']) {
                 $httpResponse['real_path'] = Storage::url($httpResponse['url']);
                 return $this->formateData($httpResponse);
             }
-            /** 锁缓存 */
-            $this->lock($md5Temp);
+
             $fileData = array_merge($fileData, [
                 'url' => $savePath,
                 'real_path' => Storage::url($savePath)
             ]);
             /** 保存文件数据 */
             $this->fileRepository->saveFileData($fileData);
-            Cache::forget($md5Temp);
             return $this->formateData($fileData);
-
         } catch (\Exception $exception) {
-            Cache::forget($md5Temp);
             \Log::warning($exception->getMessage());
             throw new \Exception($exception->getMessage());
         }
     }
-
     /**
      * 格式化输出
      * @param $data
@@ -123,41 +103,6 @@ class FileService
     protected function formateData($data)
     {
         return (new BaseModel())->setAttributes($data);
-    }
-    /**
-     * 文件批量上传，排队等待
-     * @param $cycle_num
-     * @param $uuid_temp
-     * @return bool
-     * @throws Exception
-     */
-    protected function fileUploadWait($cycleNum, $uuidTemp)
-    {
-        $i = 0;
-        for ($i; $i < $cycleNum; $i++) {
-            $lock_num = \Redis::get($uuidTemp);
-            if ($lock_num) {
-                sleep(config('file.file_interval'));
-            } else {
-                return true;
-            }
-        }
-        throw new Exception("等待超时");
-    }
-    /**
-     * cache lock
-     *
-     * @param [type] $md5Temp
-     * @throws Exception
-     */
-    protected function lock($md5Temp)
-    {
-        $lockInterval = config('file.lock_interval');
-
-        $redis_temp = Cache::lock($md5Temp)->block($lockInterval);
-        if (!$redis_temp) {
-            throw new Exception("redis锁存在！");
-        }
     }
     /**
      * 创建默认文件路径
@@ -174,19 +119,5 @@ class FileService
                 $filePath = "/" . date("Y/m/d/H/i", time()) . "/";    
         }
         return $filePath;
-    }
-    /**
-     * 保存配置
-     *
-     * @param [type] $params
-     * @return Exception
-     */
-    protected function saveConfig($params)
-    {
-        try {
-            $this->configRepository->store($params);
-        } catch (\Exception $exception) {
-            throw new Exception($exception->getMessage());
-        }
     }
 }
