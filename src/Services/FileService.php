@@ -4,7 +4,7 @@ namespace Zijinghua\Zfilesystem\Http\Services;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
-use App\Models\Format\BaseModel;
+use Zijinghua\Zfilesystem\Models\BaseModel;
 use Zijinghua\Zfilesystem\Repositories\FileRepository;
 use Exception;
 use Zijinghua\Zfilesystem\Repositories\ConfigRepository;
