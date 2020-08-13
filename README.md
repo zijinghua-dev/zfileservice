@@ -11,6 +11,20 @@
 + 迁移数据
 > php artisan zfilesystem:install
 
++ 修改.env环境变量
+> 将下面的参数放到.env最后面
+~~~php
+#ALIYUN
+ALIYUN_ACCESS_KEY_ID=你自己的oss key id
+ALIYUN_ACCESS_KEY_SECRET=你自己的oss secret
+#ALIYUN OSS
+ALIYUN_OSS_BUCKET=你自己的oss bucket
+ALIYUN_OSS_ENDPOINT_EXTERNAL=你自己的oss外网地址
+ALIYUN_OSS_ENDPOINT_INTERNAL=null
+ALIYUN_OSS_CDN_DOMAIN=
+ALIYUN_OSS_CDN_DOMAIN_ENABLE=false
+~~~
+
 + 修改config/filesystem.php
 > 在config/filesystem.php的disk数组中增加如下配置
 ~~~php
