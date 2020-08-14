@@ -12,6 +12,10 @@
 > php artisan zfilesystem:install
 
 + 修改.env环境变量
+> .env增加FILESYSTEM_DRIVER
+~~~php
+FILESYSTEM_DRIVER=oss
+~~~
 > 将下面的参数放到.env最后面
 ~~~php
 #ALIYUN

@@ -10,5 +10,6 @@ return [
     'file_interval' => 1,
     'file_cycle_num' => 20,
     'redis_aging_time' => 60*60,
-    'file_lock' => '_file_lock'
+    'file_lock' => '_file_lock',
+    'filename_length' => 50
 ];

@@ -63,7 +63,7 @@ class FileService
                 'file_md5' => $fileMd5,
                 'filename_extension' => $fileExtension,
                 'file_size' => $fileSize,
-                'filename_prefix' => $fileNameList[0],
+                'filename_prefix' => substr($fileNameList[0], 0, config('zfilesystem.file.filename_length')),
                 'type' => $fileType,
                 'file_path' => $filePath,
                 'project' => $project,
@@ -116,7 +116,7 @@ class FileService
                 $filePath = "\/resources/images/";
                 break;
             default :
-                $filePath = "/" . date("Y/m/d/H/i", time()) . "/";    
+                $filePath = "/";
         }
         return $filePath;
     }
