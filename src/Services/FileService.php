@@ -4,17 +4,21 @@ namespace Zijinghua\Zfilesystem\Http\Services;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use Zijinghua\Zbasement\Http\Services\BaseService;
 use Zijinghua\Zfilesystem\Models\BaseModel;
 use Zijinghua\Zfilesystem\Repositories\FileRepository;
 use Exception;
 use Zijinghua\Zfilesystem\Repositories\ConfigRepository;
+use Carbon\Carbon;
+use Illuminate\Contracts\Auth\Factory as Auth;
 
-class FileService
+class FileService extends BaseService
 {
     /** @var 文件库 */
     protected $fileRepository;
-    
+    /** @var ConfigRepository  */
     protected $configRepository;
+    protected $token;
     /**
      * FileService constructor.
      * @param FileRepository $fileRepository
@@ -23,6 +27,8 @@ class FileService
     {
         $this->fileRepository = $fileRepository;
         $this->configRepository = $configRepository;
+        $this->token = $this->getToken();
+        $this->setSlug('file');
     }
 
     /**
@@ -38,7 +44,20 @@ class FileService
         $response = array_merge($response, [
             'real_path' => Storage::exists($response['url']) ? Storage::url($response['url']) : ''
         ]);
-        return $this->formateData($response);
+
+        if (!$response['url']) {
+            $messageResponse = $this->messageResponse($this->getSlug(), 'index.submit.failed');
+        } else {
+            $result = $this->formateData($response);
+            $messageResponse = $this->messageResponse(
+                $this->getSlug(),
+                'index.submit.success',
+                $result,
+                null,
+                $this->token
+            );
+        }
+        return $messageResponse;
     }
     /**
      * 上传文件
@@ -48,6 +67,7 @@ class FileService
      */
     public function upload($request)
     {
+        $response = null;
         try {
             $fileMd5 = $request->input('file_md5');
             $uploadFile = $request->file('file');
@@ -80,19 +100,27 @@ class FileService
             $httpResponse = $this->fileRepository->getFileData(null, $fileMd5);
             if ($httpResponse['file_md5']) {
                 $httpResponse['real_path'] = Storage::url($httpResponse['url']);
-                return $this->formateData($httpResponse);
+                $response = $this->formateData($httpResponse);
             }
-
-            $fileData = array_merge($fileData, [
-                'url' => $savePath,
-                'real_path' => Storage::url($savePath)
-            ]);
-            /** 保存文件数据 */
-            $this->fileRepository->saveFileData($fileData);
-            return $this->formateData($fileData);
+            if (!$response) {
+                $fileData = array_merge($fileData, [
+                    'url' => $savePath,
+                    'real_path' => Storage::url($savePath)
+                ]);
+                /** 保存文件数据 */
+                $this->fileRepository->saveFileData($fileData);
+                $response = $this->formateData($fileData);
+            }
+            return $this->messageResponse(
+                $this->getSlug(),
+                'upload.submit.success',
+                $response,
+                null,
+                $this->token
+            );
         } catch (\Exception $exception) {
             \Log::warning($exception->getMessage());
-            throw new \Exception($exception->getMessage());
+            return $this->messageResponse($this->getSlug(), 'store.submit.failed');
         }
     }
     /**
@@ -102,6 +130,11 @@ class FileService
      */
     protected function formateData($data)
     {
+        $createdAt = strtotime($data['created_at']);
+        $updatedAt = strtotime($data['updated_at']);
+
+        $data['created_at'] = Carbon::createFromFormat('Y-m-d H:i:s', date('Y-m-d H:i:s', $createdAt));
+        $data['updated_at'] = Carbon::createFromFormat('Y-m-d H:i:s', date('Y-m-d H:i:s', $updatedAt));
         return (new BaseModel())->setAttributes($data);
     }
     /**
@@ -119,5 +152,21 @@ class FileService
                 $filePath = "/";
         }
         return $filePath;
+    }
+    /**
+     * 获取token
+     * @return string
+     * @throws Exception
+     */
+    protected function getToken()
+    {
+        $guard = auth('api');
+        $payload = $guard->getPayload()->get();
+        $freshPeriod = getConfigValue('zbasement.token.refresh_period');
+        $token = '';
+        if (($payload['exp'] - time()) < $freshPeriod) {
+            $token = $guard->refresh();
+        }
+        return $token;
     }
 }

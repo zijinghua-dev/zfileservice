@@ -31,5 +31,14 @@ class ShowRequest extends FormRequest
                 'string'
             ],
         ];
-    }    
+    }
+
+    public function messages()
+    {
+        $message =  [
+            'filename_prefix.required' => '请传入文件前缀',
+            'filename_extension.required_with' => '请传入文件后缀'
+        ];
+        return $message;
+    }
 }

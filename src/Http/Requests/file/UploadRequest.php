@@ -41,4 +41,13 @@ class UploadRequest extends FormRequest
             ]
         ];
     }
+    public function messages()
+    {
+        $message =  [
+            'file.required' => '请传入文件',
+            'file_md5.required' => '请传入文件md5码',
+            'resource_keyword.required_with' => '文件为资源类型时，请输入资源关键字',
+        ];
+        return $message;
+    }
 }

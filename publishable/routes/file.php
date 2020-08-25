@@ -1,6 +1,6 @@
 <?php
 
-Route::group(['middleware' => 'auth:api'], function () {
+Route::group(['middleware' => 'zAuthorize:api'], function () {
     Route::group(['prefix' => 'file',], function () {
         Route::post('/', 'FileController@upload');
         Route::get('/{md5?}', 'FileController@show');

@@ -19,8 +19,7 @@ class FileController
     public function show(ShowRequest $request, FileService $fileService, $uuid = null)
     {
         $result = $fileService->getFile($request, $uuid);
-
-        return new FileResource($result);
+        return $result->response();
     }
     /**
      * 上传文件
@@ -32,12 +31,12 @@ class FileController
     public function upload(UploadRequest $request, FileService $fileService)
     {
         $result = $fileService->upload($request);
-        return new FileResource($result);
+        return $result->response();
     }
 
     public function resource(UploadRequest $request, FileService $fileService)
     {
         $result = $fileService->upload($request);
-        return new FileResource($result);
+        return $result->response();
     }
 }
