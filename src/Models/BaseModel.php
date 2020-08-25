@@ -11,8 +11,9 @@ use Illuminate\Contracts\Support\Jsonable;
 use Illuminate\Database\Eloquent\Concerns\HasAttributes;
 use Illuminate\Database\Eloquent\Concerns\HidesAttributes;
 use Illuminate\Database\Eloquent\Concerns\HasTimestamps;
+use Illuminate\Database\Eloquent\Model;
 
-class BaseModel implements ArrayAccess, Arrayable, Jsonable, JsonSerializable
+class BaseModel extends Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializable
 {
     use HasAttributes;
     use HasTimestamps;
