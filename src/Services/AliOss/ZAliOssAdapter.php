@@ -39,9 +39,6 @@ class ZAliOssAdapter extends AliOssAdapter
      */
     public function getUrl($path)
     {
-        if (!$this->has($path)) {
-            throw new FileNotFoundException($path.' not found');
-        }
         $path = $this->getPathPrefix() . ltrim($path, '\\/');
         return ( $this->ssl ? 'https://' : 'http://' ) . ( $this->isCname ?
                 ( $this->cdnDomain == '' ? $this->endPoint : $this->cdnDomain ) :

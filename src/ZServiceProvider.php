@@ -24,7 +24,7 @@ class ZServiceProvider extends ServiceProvider
         $this->mergeConfig();
         if ($this->app->runningInConsole()) {
             $this->loadMigrationsFrom(realpath(__DIR__ . '/../publishable/migrations'));
-        }        
+        }
     }
 
     private function registerProvider(){
@@ -52,6 +52,9 @@ class ZServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom( $this->getPublishablePath(). '/configs/file.php', 'zfilesystem.file');
         $this->mergeConfigFrom( $this->getPublishablePath(). '/configs/zoss.php', 'zfilesystem.zoss');
+        $this->mergeConfigFrom( $this->getPublishablePath(). '/configs/code/file.php', 'zbasement.code.file');
+        $this->mergeConfigFrom( $this->getPublishablePath(). '/configs/validation/rules/file.php', 'zbasement.validation.rules.file');
+        $this->mergeConfigFrom( $this->getPublishablePath(). '/configs/validation/messages/file.php', 'zbasement.validation.messages.file');
     }
 }
 
