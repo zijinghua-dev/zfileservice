@@ -42,11 +42,11 @@ class FileService extends BaseService
     {
         $response = $this->fileRepository->getFileData($request, $fileMd5);
         $response = array_merge($response, [
-            'real_path' => Storage::exists($response['url']) ? Storage::url($response['url']) : ''
+            'real_path' => Storage::url($response['url'])
         ]);
 
         if (!$response['url']) {
-            $messageResponse = $this->messageResponse($this->getSlug(), 'index.submit.failed');
+            $messageResponse = $this->messageResponse($this->getSlug(), 'show.submit.failed');
         } else {
             $result = $this->formateData($response);
             $messageResponse = $this->messageResponse(
@@ -108,8 +108,8 @@ class FileService extends BaseService
                     'real_path' => Storage::url($savePath)
                 ]);
                 /** 保存文件数据 */
-                $this->fileRepository->saveFileData($fileData);
-                $response = $this->formateData($fileData);
+                $responseData = $this->fileRepository->saveFileData($fileData);
+                $response = $this->formateData($responseData);
             }
             return $this->messageResponse(
                 $this->getSlug(),
@@ -130,6 +130,7 @@ class FileService extends BaseService
      */
     protected function formateData($data)
     {
+
         $createdAt = strtotime($data['created_at']);
         $updatedAt = strtotime($data['updated_at']);
 
@@ -163,7 +164,7 @@ class FileService extends BaseService
         $guard = auth('api');
         $payload = $guard->getPayload()->get();
         $freshPeriod = getConfigValue('zbasement.token.refresh_period');
-        $token = '';
+        $token = null;
         if (($payload['exp'] - time()) < $freshPeriod) {
             $token = $guard->refresh();
         }
