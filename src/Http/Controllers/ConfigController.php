@@ -2,7 +2,7 @@
 
 namespace Zijinghua\Zfilesystem\Http\Controllers;
 
-use App\Http\Requests\Article\IndexRequest;
+use Zijinghua\Zfilesystem\Http\Requests\Config\IndexRequest;
 use Zijinghua\Zfilesystem\Http\Services\ConfigService;
 use Zijinghua\Zfilesystem\Http\Resources\ConfigResource;
 
@@ -18,10 +18,10 @@ class ConfigController
     public function index(IndexRequest $request, ConfigService $configService)
     {
         try {
-            $configs = $configService->getList($request);
+            $result = $configService->getList($request);
+            return $result->response();
         } catch (\Exception $e) {
-            response($e->getMessage(), 500);
+            return response($e->getMessage(), 500);
         }
-        return ConfigResource::collection($configs);
     }
 }
