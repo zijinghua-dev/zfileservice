@@ -12,16 +12,21 @@ class ConfigRepository
     {
         $this->config = $config->newQuery();
     }
+
     /**
      * get config list
-     *
-     * @return void
+     * @return \Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
+     * @throws \Exception
      */
     public function getList()
     {
-        $config = $this->config
-            ->orderByDesc('created_at')
-            ->get();
-        return $config;
+        try {
+            $config = $this->config
+                ->orderByDesc('created_at')
+                ->get();
+            return $config;
+        } catch (\Exception $exception) {
+            throw new \Exception($exception->getMessage(), 500);
+        }
     }
 }

@@ -7,6 +7,6 @@ Route::group(['middleware' => 'auth:api'], function () {
         Route::delete('/{md5}', 'FileController@delete');
     });
     Route::group(['prefix' => 'config',], function () {
-        Route::get('/', 'ConfigController@index');
+        Route::post('/', 'ConfigController@index');
     });
 });
