@@ -15,7 +15,6 @@ class CreateConfigsTable extends Migration
     {
         Schema::create('configs', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->uuid('uuid');
             $table->string('keyword', 20)->nullable(true)->comment('关键词');
             $table->string('value', 100)->nullable(true)->comment(' 关键词的值');
             $table->string('remark', 50)->nullable(true)->comment('备注');
