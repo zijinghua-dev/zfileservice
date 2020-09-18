@@ -14,11 +14,12 @@ class FileController
      * @param ShowRequest $request
      * @param FileService $fileService
      * @param null $uuid
-     * @return FileResource
+     * @return mixed
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function show(ShowRequest $request, FileService $fileService, $uuid = null)
+    public function show(ShowRequest $request, FileService $fileService)
     {
-        $result = $fileService->getFile($request, $uuid);
+        $result = $fileService->fetch($request);
         return $result->response();
     }
     /**
@@ -34,6 +35,12 @@ class FileController
         return $result->response();
     }
 
+    /**
+     * @param UploadRequest $request
+     * @param FileService $fileService
+     * @return mixed
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function resource(UploadRequest $request, FileService $fileService)
     {
         $result = $fileService->upload($request);

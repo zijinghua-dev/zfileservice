@@ -22,6 +22,17 @@ return [
             ]
         ],
     ],
+    'filemd5'=>[
+        [
+            'message'=>[
+                'string'=>'必须是字符串类型',
+                'max'=>'文件最多不超过32个字符。',
+            ],
+            'action'=>[
+                'show'
+            ]
+        ],
+    ],
     'filename_prefix'=>[
         [
             'message'=>[

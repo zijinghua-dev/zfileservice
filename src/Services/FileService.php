@@ -38,9 +38,13 @@ class FileService extends BaseService
      * @return BaseModel
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function getFile($request = null, $fileMd5 = null)
+    public function fetch($request = null)
     {
-        $response = $this->fileRepository->getFileData($request, $fileMd5);
+        $response = $this->fileRepository->fetch($request->only([
+            'filemd5',
+            'filename_prefix',
+            'filename_extension'
+        ]));
         $response = array_merge($response, [
             'real_path' => Storage::url($response['url'])
         ]);
