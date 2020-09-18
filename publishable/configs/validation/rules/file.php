@@ -44,9 +44,21 @@ return [
             ],
         ],
     ],
+    'filemd5' => [
+        [
+            'rule' => [
+                'required_without:filename_prefix,filename_extension',
+                'string'
+            ],
+            'action' => [
+                'show',
+            ],
+        ]
+    ],
     'filename_prefix' => [
         [
             'rule' => [
+                'required_without:filemd5',
                 'string'
             ],
             'action' => [

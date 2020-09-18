@@ -7,11 +7,16 @@ use GuzzleHttp\Exception\ClientException;
 
 class FileRepository
 {
+    /** @var Client  */
     protected $client;
+    /** @var string base uri */
+    protected $baseUri;
 
     public function __construct()
     {
         $this->client = new Client(['verify' => false]);
+        $this->baseUri = config('zfilesystem.file.file_sevice.host') .
+            config('zfilesystem.file.file_sevice.api');
     }
 
     /**
@@ -20,17 +25,10 @@ class FileRepository
      * @return mixed
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function getFileData($request = null, $fileMd5 = null)
+    public function fetch(array $params)
     {
-        $uri = config('zfilesystem.file.file_sevice.host') .
-            config('zfilesystem.file.file_sevice.api');
-        if ($fileMd5) {
-            $uri .= '/' . $fileMd5;
-        }
-        if ($request) {
-            $uri .= '/?' . http_build_query($request->all());
-        }
-        return $this->httpRequest('get', $uri);
+        $uri = $this->baseUri . '/show';
+        return $this->httpRequest($uri, $params);
     }
     /**
      * 保存文件数据
@@ -52,44 +50,11 @@ class FileRepository
      * @return mixed
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    protected function httpRequest($method, $uri, $params = null)
+    protected function httpRequest($uri, $params = null)
     {
-        switch ($method) {
-            case 'post':
-                $response = $this->postData($uri, $params);
-                break;
-            case 'get':
-                $response = $this->getData($uri);
-                break;
-            default:
-                $response = $this->postData($uri, $params);
-        }
+        $response = $this->postData($uri, $params);
         return $response;
     }
-
-    /**
-     * @param $uri
-     * @return mixed
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     */
-    protected function getData($uri)
-    {
-        try {
-            $params = [
-                'headers' => [
-                    'Content-Type' => 'application/x-www-form-urlencoded'
-                ]
-            ];
-            $response = $this->client->request('GET', $uri, $params);
-            $responseDecode = json_decode($response->getBody()->__toString(), true);
-            return $responseDecode;
-        } catch (\Exception $exception) {
-            throw new \Exception($exception->getMessage(), $exception->getCode());
-        } catch (ClientException $exception) {
-            throw new \Exception($exception->getMessage(), $exception->getCode());
-        }
-    }
-
     /**
      * @param $uri
      * @param $params
