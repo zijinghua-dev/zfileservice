@@ -40,11 +40,11 @@ class FileService extends BaseService
      */
     public function fetch($request = null)
     {
-        $response = $this->fileRepository->fetch($request->only([
-            'filemd5',
-            'filename_prefix',
-            'filename_extension'
-        ]));
+        $requestData = $request->only(['filename_prefix', 'filename_extension']);
+        if ($fileMd5 = $request->input( 'filemd5')) {
+            $requestData = array_merge($requestData, ['file_md5' => $fileMd5]);
+        }
+        $response = $this->fileRepository->fetch($requestData);
         $response = array_merge($response, [
             'real_path' => Storage::url($response['url'])
         ]);
@@ -101,7 +101,7 @@ class FileService extends BaseService
                 }
             }
             // 文件数据存在，返回文件数据
-            $httpResponse = $this->fileRepository->getFileData(null, $fileMd5);
+            $httpResponse = $this->fileRepository->fetch(['file_md5' => $fileMd5]);
             if ($httpResponse['file_md5']) {
                 $httpResponse['real_path'] = Storage::url($httpResponse['url']);
                 $response = $this->formateData($httpResponse);
