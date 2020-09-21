@@ -50,12 +50,12 @@ class FileService extends BaseService
         ]);
 
         if (!$response['url']) {
-            $messageResponse = $this->messageResponse($this->getSlug(), 'show.submit.failed');
+            $messageResponse = $this->messageResponse($this->getSlug(), 'show.submit.success');
         } else {
             $result = $this->formateData($response);
             $messageResponse = $this->messageResponse(
                 $this->getSlug(),
-                'index.submit.success',
+                'show.submit.success',
                 $result,
                 null,
                 $this->token
