@@ -42,22 +42,22 @@ class FileService extends BaseService
      */
     public function fetch($request = null)
     {
-        $response = $this->fileRepository->fetch($request->only([
-            'filemd5',
-            'filename_prefix',
-            'filename_extension'
-        ]));
+        $requestData = $request->only(['filename_prefix', 'filename_extension']);
+        if ($fileMd5 = $request->input( 'filemd5')) {
+            $requestData = array_merge($requestData, ['file_md5' => $fileMd5]);
+        }
+        $response = $this->fileRepository->fetch($requestData);
         $response = array_merge($response, [
             'real_path' => Storage::url($response['url'])
         ]);
 
         if (!$response['url']) {
-            $messageResponse = $this->messageResponse($this->getSlug(), 'show.submit.failed');
+            $messageResponse = $this->messageResponse($this->getSlug(), 'show.submit.success');
         } else {
             $result = $this->formateData($response);
             $messageResponse = $this->messageResponse(
                 $this->getSlug(),
-                'index.submit.success',
+                'show.submit.success',
                 $result,
                 null,
                 $this->token

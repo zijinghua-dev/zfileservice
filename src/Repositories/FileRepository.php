@@ -38,7 +38,7 @@ class FileRepository
      */
     public function saveFileData($params)
     {
-        $uri = $uri = $this->baseUri . '/store';
+        $uri = $this->baseUri . '/store';
         return $this->httpRequest($uri, $params);
     }
 
