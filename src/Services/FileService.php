@@ -2,8 +2,10 @@
 
 namespace Zijinghua\Zfilesystem\Http\Services;
 
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\ImageManagerStatic as Image;
 use Zijinghua\Zbasement\Http\Services\BaseService;
 use Zijinghua\Zfilesystem\Models\BaseModel;
 use Zijinghua\Zfilesystem\Repositories\FileRepository;
@@ -75,14 +77,21 @@ class FileService extends BaseService
         try {
             $fileMd5 = $request->input('file_md5');
             $uploadFile = $request->file('file');
+            $isCompress = $request->input('compress', true);
             $fileExtension = $uploadFile->getClientOriginalExtension();
             $fileSize = $uploadFile->getClientSize();
+            $fileName = $uploadFile->getClientOriginalName();
             $fileNameList = explode('.', $uploadFile->getClientOriginalName());
             $fileType = $uploadFile->getClientMimeType();
             $useType = $request->input('use_type');
             $filePath = $this->generateFilePath($useType);
             $savePath = $filePath . $fileMd5 . '.' . $fileExtension;
             $project = config('zfilesystem.file.project');
+            $compressResult = $this->comporess($uploadFile, $fileNameList[0], $fileExtension, $isCompress);
+            if (!($compressResult instanceof UploadedFile)) {
+                $uploadFile = $compressResult['path'];
+                $fileSize = $compressResult['size'];
+            }
             $fileData = [
                 'file_md5' => $fileMd5,
                 'filename_extension' => $fileExtension,
@@ -100,6 +109,8 @@ class FileService extends BaseService
                     throw new Exception("文件上传异常");
                 }
             }
+            $this->removeTempImage($fileName);
+
             // 文件数据存在，返回文件数据
             $httpResponse = $this->fileRepository->fetch(['file_md5' => $fileMd5]);
             if ($httpResponse['file_md5']) {
@@ -111,6 +122,7 @@ class FileService extends BaseService
                     'url' => $savePath,
                     'real_path' => Storage::url($savePath)
                 ]);
+
                 /** 保存文件数据 */
                 $responseData = $this->fileRepository->saveFileData($fileData);
                 $response = $this->formateData($responseData);
@@ -173,5 +185,50 @@ class FileService extends BaseService
             $token = $guard->refresh();
         }
         return $token;
+    }
+
+    /**
+     * 如果图片
+     * @param $image
+     * @param $imageType
+     * @param $isCompress
+     * @return \Intervention\Image\Image
+     */
+    protected function comporess($image, $imageName, $imageType, $isCompress)
+    {
+        $avoidType = ['jpg', 'bmp', 'png'];
+        if (!in_array($imageType, $avoidType)) {
+            return $image;
+        }
+        if (!$isCompress) {
+            return $image;
+        }
+        list($width, $height) = getimagesize($image);
+        $maxSideLenght = config('zfilesystem.file.image_max_side_length');
+
+        if ($width > $maxSideLenght) {
+            $rate = number_format($maxSideLenght / $width, 8);
+            $newWidth = $maxSideLenght;
+            $newHeight = intval($height * $rate);
+        } else if ($height > $maxSideLenght) {
+            $rate = number_format($maxSideLenght / $height, 8);
+            $newWidth = intval($height * $rate);
+            $newHeight = $maxSideLenght;
+        } else {
+            return $image;
+        }
+        $tempPath = public_path() . '/storage/temp/';
+        if (!file_exists($tempPath)) {
+            mkdir($tempPath);
+        }
+        $fileTempPath = $tempPath  . $imageName . '.' . $imageType;
+        $newImage = Image::make($image)->resize($newWidth, $newHeight)->save($fileTempPath, 90);
+        return collect(['path' => $fileTempPath, 'size' => $newImage->filesize()]);
+    }
+
+    protected function removeTempImage($fileName)
+    {
+        $disk = Storage::disk('temp');
+        $disk->delete($fileName);
     }
 }

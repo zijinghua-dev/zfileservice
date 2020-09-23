@@ -4,7 +4,7 @@ return [
         [
             'message'=>[
                 'file'=>'必须是文件类型',
-                'max'=>'文件最多不超过10M。',
+                'max'=>'文件最多不超过20M。',
             ],
             'action'=>[
                 'upload'
