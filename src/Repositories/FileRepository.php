@@ -38,9 +38,8 @@ class FileRepository
      */
     public function saveFileData($params)
     {
-        $uri = config('zfilesystem.file.file_sevice.host') .
-            config('zfilesystem.file.file_sevice.api');
-        return $this->httpRequest('post', $uri, $params);
+        $uri = $uri = $this->baseUri . '/store';
+        return $this->httpRequest($uri, $params);
     }
 
     /**

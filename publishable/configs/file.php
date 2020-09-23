@@ -11,5 +11,6 @@ return [
     'file_cycle_num' => 20,
     'redis_aging_time' => 60*60,
     'file_lock' => '_file_lock',
-    'filename_length' => 32
+    'filename_length' => 32,
+    'image_max_side_length' => 3000,   //图片最大宽度
 ];

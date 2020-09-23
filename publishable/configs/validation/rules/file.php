@@ -5,7 +5,7 @@ return [
             'rule' => [
                 'required',
                 'file',
-                'max:10240'
+                'max:20480'
             ],
             'action' => [
                 'upload',
